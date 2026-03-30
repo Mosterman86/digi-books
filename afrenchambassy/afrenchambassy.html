@@ -548,7 +548,9 @@ function turnPage(dir) {
 
 function resizeBook() {
   const isMobile = window.innerWidth <= 800;
-  const isTablet = window.innerWidth > 800 && window.innerWidth <= 1440;
+  /* Add touch detection to JS so desktop windows aren't mistaken for iPads */
+  const isTouch = window.matchMedia("(pointer: coarse)").matches;
+  const isTablet = window.innerWidth > 800 && window.innerWidth <= 1440 && isTouch;
   let pageW, pageH;
 
   if (isMobile) {
@@ -562,6 +564,7 @@ function resizeBook() {
       pageW = Math.round(pageH * PAGE_ASPECT); 
     }
   } else if (isTablet) {
+    /* iPad Kiosk Math (Only runs on actual touch screens) */
     const availW = window.innerWidth - 220; 
     const availH = window.innerHeight - 130; 
     pageW = Math.floor(availW / 2); 
@@ -572,7 +575,10 @@ function resizeBook() {
       pageW = Math.round(pageH * PAGE_ASPECT); 
     }
   } else {
-    const availW = window.innerWidth - 220; 
+    /* Original Desktop Math 
+      (Restores the 170px vertical margin so arrows don't overlap!) 
+    */
+    const availW = window.innerWidth - 140; 
     const availH = window.innerHeight - 170; 
     pageW = Math.floor(availW / 2); 
     pageH = Math.round(pageW / PAGE_ASPECT);
@@ -585,6 +591,22 @@ function resizeBook() {
     if (pageW > 1360) {
       pageW = 1360;
       pageH = Math.round(pageW / PAGE_ASPECT);
+    }
+
+    /* The Horizontal Book Fix
+      If a wide book gets closer than 90px to the left edge, it shrinks 
+      just enough to protect the thumbnails. Portrait books are untouched.
+    */
+    const leftSpace = (window.innerWidth - (pageW * 2)) / 2;
+    if (leftSpace < 90) {
+      pageW = Math.floor((window.innerWidth - 180) / 2);
+      pageH = Math.round(pageW / PAGE_ASPECT);
+      
+      /* Re-check height just in case */
+      if (pageH > availH) { 
+        pageH = availH; 
+        pageW = Math.round(pageH * PAGE_ASPECT); 
+      }
     }
   }
 
