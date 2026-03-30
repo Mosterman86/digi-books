@@ -234,28 +234,21 @@
     color: var(--mid); cursor: pointer; transition: all 0.2s ease;
   }
   .home-btn:hover, .fs-btn:hover { background: rgba(255,255,255,0.1); color: var(--paper); border-color: rgba(255,255,255,0.5); }
-/* iPad and Tablet Adjustments */
 @media (max-width: 1366px) and (min-width: 801px) {
-  #intro-panel h2 {
-    font-size: 32px; /* Increased from 22px */
-  }
   
-  #intro-panel p {
-    font-size: 18px; /* Increased from 14px */
-    line-height: 1.6;
+  /* ADD THIS to push text to the edges of the page */
+  .intro-scroll-area {
+    padding: 0 4% 0 2%; /* Drastically reduces empty side space */
+    margin-right: 0;
+    max-height: 95%; /* Allows text to stretch taller */
   }
-  
-  .wordmark {
-    font-size: 18px; /* Increased from 14px */
-  }
-  
-  .page-counter {
-    font-size: 14px; /* Increased from 11px */
-  }
-  
-  .controls-hint {
-    font-size: 15px; /* Increased from 13px */
-  }
+
+  /* ... your existing font size increases remain here ... */
+  #intro-panel h2 { font-size: 32px; }
+  #intro-panel p { font-size: 18px; line-height: 1.6; }
+  .wordmark { font-size: 18px; }
+  .page-counter { font-size: 14px; }
+  .controls-hint { font-size: 15px; }
 }
   @media (max-width: 800px) {
     #thumb-strip { display: none !important; }
