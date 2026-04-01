@@ -204,7 +204,7 @@
     transition: opacity 0.8s ease, pointer-events 0s 0.8s;
   }
   #cover-page.hidden { opacity: 0; pointer-events: none; }
-  .cover-inner { text-align: center; }
+  .cover-inner { text-align: center; max-width: 80%; }
   .cover-title {
     font-size: 46px; font-weight: 300; letter-spacing: 0.12em;
     line-height: 1.05; color: var(--paper);
@@ -227,16 +227,76 @@
   .thumb { width: 48px; height: 36px; overflow: hidden; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; opacity: 0.3; flex-shrink: 0; border-radius: 2px;}
   .thumb.active { opacity: 1; border-color: rgba(255,255,255,0.65); }
   .thumb img { width: 100%; height: 100%; object-fit: cover; }
-  
-  .home-btn, .fs-btn {
+
+  /* Standard Fullscreen Button */
+  .fs-btn {
     display: flex; align-items: center; justify-content: center;
     width: 36px; height: 36px; background: transparent; border: 1px solid rgba(255,255,255,0.2);
     color: var(--mid); cursor: pointer; transition: all 0.2s ease;
   }
-  .home-btn:hover, .fs-btn:hover { background: rgba(255,255,255,0.1); color: var(--paper); border-color: rgba(255,255,255,0.5); }
+  .fs-btn:hover { background: rgba(255,255,255,0.1); color: var(--paper); border-color: rgba(255,255,255,0.5); }
+  
+  /* Adjusted High-Contrast Home Button */
+  .home-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; background: transparent; 
+    border: 1px solid rgba(255,255,255,0.5); 
+    color: var(--paper); 
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .home-btn:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.9); }
+
+/* iPad and Tablet Adjustments (ONLY TRIGGERS ON TOUCHSCREENS) */
+@media (max-width: 1440px) and (min-width: 801px) and (pointer: coarse) {
+  
+  /* Hide Fullscreen Button on iPads/Kiosk */
+  .fs-btn {
+    display: none !important;
+  }
+
+  .intro-scroll-area {
+    /* Safe zone padding for the text */
+    padding: 0 5% 0 8%; 
+    margin-right: 0;
+    max-height: 95%;
+  }
+
+  #intro-panel h2 {
+    font-size: 38px; 
+    margin-bottom: 15px;
+  }
+  
+  #intro-panel p {
+    font-size: 21px; 
+    line-height: 1.7; 
+  }
+  
+  .wordmark { font-size: 20px; }
+  .page-counter { font-size: 15px; }
+  .controls-hint { font-size: 16px; }
+
+  /* Scale up the UI Buttons for Kiosk Touch */
+  .home-btn { 
+    width: 48px; 
+    height: 48px; 
+  }
+  .home-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+  .nav-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 22px;
+  }
+  #controls {
+    padding-bottom: 40px; 
+  }
+}
 
   @media (max-width: 800px) {
     #thumb-strip { display: none !important; }
+    .fs-btn { display: none !important; } /* Hidden on mobile too */
     header { padding: 20px 28px; justify-content: space-between; }
     .page-counter { position: absolute; top: 60px; left: 0; width: 100%; text-align: center; }
     #controls { padding: 10px 15px 25px; gap: 10px; }
@@ -486,6 +546,9 @@ function turnPage(dir) {
 
 function resizeBook() {
   const isMobile = window.innerWidth <= 800;
+  /* Add touch detection to JS so desktop windows aren't mistaken for iPads */
+  const isTouch = window.matchMedia("(pointer: coarse)").matches;
+  const isTablet = window.innerWidth > 800 && window.innerWidth <= 1440 && isTouch;
   let pageW, pageH;
 
   if (isMobile) {
@@ -498,7 +561,21 @@ function resizeBook() {
       pageH = availH; 
       pageW = Math.round(pageH * PAGE_ASPECT); 
     }
+  } else if (isTablet) {
+    /* iPad Kiosk Math (Only runs on actual touch screens) */
+    const availW = window.innerWidth - 220; 
+    const availH = window.innerHeight - 130; 
+    pageW = Math.floor(availW / 2); 
+    pageH = Math.round(pageW / PAGE_ASPECT);
+    
+    if (pageH > availH) { 
+      pageH = availH; 
+      pageW = Math.round(pageH * PAGE_ASPECT); 
+    }
   } else {
+    /* Original Desktop Math 
+      (Restores the 170px vertical margin so arrows don't overlap!) 
+    */
     const availW = window.innerWidth - 140; 
     const availH = window.innerHeight - 170; 
     pageW = Math.floor(availW / 2); 
@@ -512,6 +589,22 @@ function resizeBook() {
     if (pageW > 1360) {
       pageW = 1360;
       pageH = Math.round(pageW / PAGE_ASPECT);
+    }
+
+    /* The Horizontal Book Fix
+      If a wide book gets closer than 90px to the left edge, it shrinks 
+      just enough to protect the thumbnails. Portrait books are untouched.
+    */
+    const leftSpace = (window.innerWidth - (pageW * 2)) / 2;
+    if (leftSpace < 90) {
+      pageW = Math.floor((window.innerWidth - 180) / 2);
+      pageH = Math.round(pageW / PAGE_ASPECT);
+      
+      /* Re-check height just in case */
+      if (pageH > availH) { 
+        pageH = availH; 
+        pageW = Math.round(pageH * PAGE_ASPECT); 
+      }
     }
   }
 
